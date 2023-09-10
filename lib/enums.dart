@@ -1,10 +1,15 @@
 enum RouletteOptions {
   planet,
-  fire,
+  flame,
   flash,
-  money,
+  dollar,
   firebase2,
   firebase1,
   flutter2,
   flutter1,
+}
+
+enum IntroOptions {
+  intro,
+  outro,
 }

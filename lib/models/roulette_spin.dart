@@ -16,4 +16,14 @@ class RouletteSpin {
       timeStamp: DateTime.parse(json['timestamp']),
     );
   }
+
+  RouletteSpin copyWith({
+    RouletteOptions? spin,
+    DateTime? timeStamp,
+  }) {
+    return RouletteSpin(
+      spin: spin ?? this.spin,
+      timeStamp: timeStamp ?? this.timeStamp
+    );
+  }
 }
