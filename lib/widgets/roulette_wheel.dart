@@ -17,6 +17,7 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
   late RiveAnimation anim;
   late RiveAnimation resultAnim;
   late RiveAnimation introAnim;
+  late RiveAnimation qrcodeAnim;
 
 
   late StateMachineController smController;
@@ -33,6 +34,7 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
   bool isResultRiveInitialized = false;
   RouletteSpin spinTurn = RouletteSpin(spin: RouletteOptions.flutter1, timeStamp: DateTime.now());
   bool isAnimationPlaying = false;
+  bool showQRCode = false;
   
 
   @override
@@ -50,14 +52,22 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
       'assets/anims/roulette.riv',
       artboard: 'resultscreen',
       onInit: onRiveResultInit,
-      fit: BoxFit.contain,
+      fit: BoxFit.fitHeight,
     );
 
     introAnim = RiveAnimation.asset(
       'assets/anims/roulette.riv',
       artboard: 'mainintro',
       onInit: onRiveIntroInit,
-      fit: BoxFit.contain,
+      fit: BoxFit.fitHeight,
+    );
+
+
+    qrcodeAnim = RiveAnimation.asset(
+      'assets/anims/roulette.riv',
+      artboard: 'qrcodescan',
+      onInit: onRiveQRCodeScanInit,
+      fit: BoxFit.fitHeight,
     );
 
     ref.read(rouletteProvider((RouletteSpin streamData) {
@@ -66,6 +76,7 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
 
             setState(() {
               spinTurn = streamData;
+              showQRCode = false;
             });
 
             introOptions[IntroOptions.outro]!.fire();
@@ -80,6 +91,13 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
               ref.read(lightTurnProvider(deviceFromOption).future).then((value) {
                 // not much to do here
               });
+
+              if (spinTurn.spin == RouletteOptions.firebase1 || spinTurn.spin == RouletteOptions.firebase2 || spinTurn.spin == RouletteOptions.flutter1 || spinTurn.spin == RouletteOptions.flutter2)
+              {
+                setState(() {
+                  showQRCode = true;
+                });
+              }
 
               Future.delayed(const Duration(seconds: 5), () {
                 resultBackOptions[spinTurn.spin]!.fire();
@@ -149,6 +167,14 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
     });
   }
 
+  void onRiveQRCodeScanInit(Artboard ab) {
+
+    smController = StateMachineController.fromArtboard(
+      ab, 'qrcodescan')!;
+
+    ab.addController(smController);
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -173,6 +199,21 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
             alignment: Alignment.center,
             scale: 1.030,
             child: introAnim
+          ),
+        ),
+
+        Align(
+          alignment: Alignment.bottomLeft,
+          child: Visibility(
+            visible: showQRCode,
+            child: Container(
+              margin: const EdgeInsets.all(10),
+              child: SizedBox(
+                width: 140,
+                height: 140,
+                child: qrcodeAnim
+              ),
+            ),
           ),
         )
       ],
