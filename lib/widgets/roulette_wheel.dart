@@ -129,7 +129,7 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
                   });
 
                   if (showQRCode == true) {
-                    Future.delayed(const Duration(seconds: 12), () {
+                    Future.delayed(const Duration(seconds: 5), () {
                       setState(() {
                         showQRCode = false;
                       });
@@ -239,8 +239,11 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
           ),
         ),
 
-        Positioned.fill(
-          child: winConfettiAnim
+        Align(alignment: Alignment.bottomCenter,
+          child: FractionallySizedBox(
+            widthFactor: 1,
+            heightFactor: 0.7,
+            child: winConfettiAnim)
         ),
 
         Align(
