@@ -8,17 +8,21 @@ class RouletteHTTPService {
 
 
   Future<bool> turnDevice(RouletteDevice device) {
-    final completer = Completer<bool>();
+    // final completer = Completer<bool>();
     
-    final uri = Uri.parse('http://${device.ipAddress}/relay/${device.deviceChannel}?turn=${device.isOn ? 'on' : 'off'}');
-    final lightState = http.get(uri).then((value) {
-      completer.complete(true);
-    }).catchError(() {
-      completer.completeError(false);
-    }).onError((error, stackTrace) {
-      completer.completeError(error.toString());
-    });
+    // final uri = Uri.parse('http://${device.ipAddress}/relay/${device.deviceChannel}?turn=${device.isOn ? 'on' : 'off'}');
+    // final lightState = http.get(uri).then((value) {
+    //   completer.complete(true);
+    // }).catchError(() {
+    //   completer.completeError(false);
+    // }).onError((error, stackTrace) {
+    //   completer.completeError(error.toString());
+    // });
 
-    return completer.future;
+    // return completer.future;
+
+    return Future.delayed(Duration(seconds: 1), () {
+      return Future.value(true);
+    });
   }
 }

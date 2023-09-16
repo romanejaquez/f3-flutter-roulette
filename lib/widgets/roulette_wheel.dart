@@ -18,17 +18,21 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
   late RiveAnimation resultAnim;
   late RiveAnimation introAnim;
   late RiveAnimation qrcodeAnim;
+  late RiveAnimation winConfettiAnim;
 
 
   late StateMachineController smController;
   late StateMachineController resultSMController;
   late StateMachineController introSMController;
+  late StateMachineController dashConfettiControler;
 
 
   Map<RouletteOptions, SMITrigger> rouletteOptions = {};
   Map<RouletteOptions, SMITrigger> resultOptions = {};
   Map<RouletteOptions, SMITrigger> resultBackOptions = {};
   Map<IntroOptions, SMITrigger> introOptions = {};
+  late SMITrigger dashConfettiTrigger;
+  late SMITrigger sparkyConfettiTrigger;
 
   bool isRiveInitialized = false;
   bool isResultRiveInitialized = false;
@@ -70,9 +74,14 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
       fit: BoxFit.fitHeight,
     );
 
-    ref.read(rouletteProvider((RouletteSpin streamData) {
+    winConfettiAnim = RiveAnimation.asset(
+      'assets/anims/flutterdash.riv',
+      artboard: 'winconfetti',
+      onInit: onRiveDashConfettiInit,
+      fit: BoxFit.fitHeight,
+    );
 
-          //if (!isAnimationPlaying) {
+    ref.read(rouletteProvider((RouletteSpin streamData) {
 
             setState(() {
               spinTurn = streamData;
@@ -88,12 +97,21 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
 
               var deviceFromOption = ref.read(rouletteListManagerProvider).getDeviceFromOption(spinTurn.spin);
               deviceFromOption.isOn = true;
+
               ref.read(lightTurnProvider(deviceFromOption).future).then((value) {
                 // not much to do here
               });
 
               if (spinTurn.spin == RouletteOptions.firebase1 || spinTurn.spin == RouletteOptions.firebase2 || spinTurn.spin == RouletteOptions.flutter1 || spinTurn.spin == RouletteOptions.flutter2)
               {
+
+                if (spinTurn.spin == RouletteOptions.firebase1 || spinTurn.spin == RouletteOptions.firebase2) {
+                  sparkyConfettiTrigger.fire();
+                }
+                else if (spinTurn.spin == RouletteOptions.flutter1 || spinTurn.spin == RouletteOptions.flutter2) {
+                  dashConfettiTrigger.fire();
+                }
+
                 setState(() {
                   showQRCode = true;
                 });
@@ -109,6 +127,14 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
                   ref.read(lightTurnProvider(deviceFromOption).future).then((value) {
                     // not much to do here
                   });
+
+                  if (showQRCode == true) {
+                    Future.delayed(const Duration(seconds: 12), () {
+                      setState(() {
+                        showQRCode = false;
+                      });
+                    });
+                  }
                 });
 
               });
@@ -132,6 +158,16 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
     setState(() {
       isRiveInitialized = true;
     });
+  }
+
+  void onRiveDashConfettiInit(Artboard ab) {
+
+    dashConfettiControler = StateMachineController.fromArtboard(
+      ab, 'winconfetti')!;
+
+    ab.addController(dashConfettiControler);
+    dashConfettiTrigger = dashConfettiControler.findSMI('dashconfetti') as SMITrigger;
+    sparkyConfettiTrigger = dashConfettiControler.findSMI('sparkyconfetti') as SMITrigger;
   }
 
   void onRiveResultInit(Artboard ab) {
@@ -194,12 +230,17 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
             child: resultAnim
           ),
         ),
+
         Center(
           child: Transform.scale(
             alignment: Alignment.center,
             scale: 1.030,
             child: introAnim
           ),
+        ),
+
+        Positioned.fill(
+          child: winConfettiAnim
         ),
 
         Align(
