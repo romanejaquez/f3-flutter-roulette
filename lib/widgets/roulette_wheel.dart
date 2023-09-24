@@ -34,12 +34,14 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
   late SMITrigger dashConfettiTrigger;
   late SMITrigger sparkyConfettiTrigger;
 
+  SMITrigger? showQRCodeTrigger;
+  SMITrigger? hideQRCodeTrigger;
+
   bool isRiveInitialized = false;
   bool isResultRiveInitialized = false;
   RouletteSpin spinTurn = RouletteSpin(spin: RouletteOptions.flutter1, timeStamp: DateTime.now());
-  bool isAnimationPlaying = false;
+  bool isWheelSpinning = false;
   bool showQRCode = false;
-  
 
   @override
   void initState() {
@@ -69,7 +71,7 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
 
     qrcodeAnim = RiveAnimation.asset(
       'assets/anims/roulette.riv',
-      artboard: 'qrcodescan',
+      artboard: 'qrcodepanelroulette',
       onInit: onRiveQRCodeScanInit,
       fit: BoxFit.fitHeight,
     );
@@ -83,63 +85,81 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
 
     ref.read(rouletteProvider((RouletteSpin streamData) {
 
+        if (isWheelSpinning) {
+          return;
+        }
+
+        setState(() {
+          spinTurn = streamData;
+          isWheelSpinning = true;
+          showQRCode = false;
+
+          if (hideQRCodeTrigger != null) {
+            hideQRCodeTrigger!.fire();
+          }
+        });
+
+        introOptions[IntroOptions.outro]!.fire();
+        rouletteOptions[spinTurn.spin]!.fire();
+
+        Future.delayed(const Duration(seconds: 6), () {
+
+          resultOptions[spinTurn.spin]!.fire();
+
+          var deviceFromOption = ref.read(rouletteListManagerProvider).getDeviceFromOption(spinTurn.spin);
+          deviceFromOption.isOn = true;
+
+          ref.read(lightTurnProvider(deviceFromOption).future).then((value) {
+            // not much to do here
+          });
+
+          if (spinTurn.spin == RouletteOptions.firebase1 || spinTurn.spin == RouletteOptions.firebase2 || spinTurn.spin == RouletteOptions.flutter1 || spinTurn.spin == RouletteOptions.flutter2)
+          {
+
+            if (spinTurn.spin == RouletteOptions.firebase1 || spinTurn.spin == RouletteOptions.firebase2) {
+              sparkyConfettiTrigger.fire();
+            }
+            else if (spinTurn.spin == RouletteOptions.flutter1 || spinTurn.spin == RouletteOptions.flutter2) {
+              dashConfettiTrigger.fire();
+            }
+
             setState(() {
-              spinTurn = streamData;
-              showQRCode = false;
+              showQRCode = true;
+
+              if (showQRCodeTrigger != null) {
+                showQRCodeTrigger!.fire();
+              }
             });
+          }
 
-            introOptions[IntroOptions.outro]!.fire();
-            rouletteOptions[spinTurn.spin]!.fire();
+          Future.delayed(const Duration(seconds: 5), () {
+            resultBackOptions[spinTurn.spin]!.fire();
 
-            Future.delayed(const Duration(seconds: 6), () {
+            Future.delayed(const Duration(seconds: 3), () {
+              introOptions[IntroOptions.intro]!.fire();
 
-              resultOptions[spinTurn.spin]!.fire();
-
-              var deviceFromOption = ref.read(rouletteListManagerProvider).getDeviceFromOption(spinTurn.spin);
-              deviceFromOption.isOn = true;
-
+              deviceFromOption.isOn = false;
               ref.read(lightTurnProvider(deviceFromOption).future).then((value) {
                 // not much to do here
               });
 
-              if (spinTurn.spin == RouletteOptions.firebase1 || spinTurn.spin == RouletteOptions.firebase2 || spinTurn.spin == RouletteOptions.flutter1 || spinTurn.spin == RouletteOptions.flutter2)
-              {
+              if (showQRCode == true) {
+                Future.delayed(const Duration(seconds: 5), () {
+                  setState(() {
+                    showQRCode = false;
 
-                if (spinTurn.spin == RouletteOptions.firebase1 || spinTurn.spin == RouletteOptions.firebase2) {
-                  sparkyConfettiTrigger.fire();
-                }
-                else if (spinTurn.spin == RouletteOptions.flutter1 || spinTurn.spin == RouletteOptions.flutter2) {
-                  dashConfettiTrigger.fire();
-                }
+                    if (hideQRCodeTrigger != null) {
+                      hideQRCodeTrigger!.fire();
+                    }
 
-                setState(() {
-                  showQRCode = true;
+                    isWheelSpinning = false;
+                  });
                 });
               }
-
-              Future.delayed(const Duration(seconds: 5), () {
-                resultBackOptions[spinTurn.spin]!.fire();
-
-                Future.delayed(const Duration(seconds: 3), () {
-                  introOptions[IntroOptions.intro]!.fire();
-
-                  deviceFromOption.isOn = false;
-                  ref.read(lightTurnProvider(deviceFromOption).future).then((value) {
-                    // not much to do here
-                  });
-
-                  if (showQRCode == true) {
-                    Future.delayed(const Duration(seconds: 5), () {
-                      setState(() {
-                        showQRCode = false;
-                      });
-                    });
-                  }
-                });
-
-              });
             });
-          //}
+
+          });
+        });
       }
     ));
   }
@@ -206,9 +226,15 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
   void onRiveQRCodeScanInit(Artboard ab) {
 
     smController = StateMachineController.fromArtboard(
-      ab, 'qrcodescan')!;
+      ab, 'qrcodepanelroulette')!;
 
     ab.addController(smController);
+    showQRCodeTrigger = smController.findSMI('qrcodein') as SMITrigger;
+    hideQRCodeTrigger = smController.findSMI('qrcodeout') as SMITrigger;
+
+    setState(() {
+      
+    });
   }
 
   @override
@@ -217,9 +243,9 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
      return Stack(
       children: [
         Center(
-          child: SizedBox(
-            width: 500,
-            height: 500,
+          child: FractionallySizedBox(
+            widthFactor: 0.8,
+            heightFactor: 0.8,
             child: anim,
           ),
         ),
@@ -249,12 +275,12 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
         Align(
           alignment: Alignment.bottomLeft,
           child: Visibility(
-            visible: showQRCode,
+            visible: true,  // showQRCode,
             child: Container(
               margin: const EdgeInsets.all(10),
               child: SizedBox(
-                width: 140,
-                height: 140,
+                width: 350,
+                height: 350,
                 child: qrcodeAnim
               ),
             ),
