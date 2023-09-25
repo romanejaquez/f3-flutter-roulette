@@ -144,7 +144,7 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
               });
 
               if (showQRCode == true) {
-                Future.delayed(const Duration(seconds: 5), () {
+                Future.delayed(const Duration(seconds: 8), () {
                   setState(() {
                     showQRCode = false;
 
@@ -155,6 +155,9 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
                     isWheelSpinning = false;
                   });
                 });
+              }
+              else {
+                isWheelSpinning = false;
               }
             });
 
@@ -243,11 +246,7 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
      return Stack(
       children: [
         Center(
-          child: FractionallySizedBox(
-            widthFactor: 0.8,
-            heightFactor: 0.8,
-            child: anim,
-          ),
+          child: anim,
         ),
         Center(
           child: Transform.scale(
