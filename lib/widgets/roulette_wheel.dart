@@ -1,3 +1,4 @@
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_roulette/enums.dart';
@@ -43,9 +44,18 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
   bool isWheelSpinning = false;
   bool showQRCode = false;
 
+  AssetsAudioPlayer bigWinPlayer = AssetsAudioPlayer();
+  AssetsAudioPlayer simpleWinPlayer = AssetsAudioPlayer();
+  AssetsAudioPlayer spinningPlayer = AssetsAudioPlayer();
+
   @override
   void initState() {
     super.initState();
+
+    // initialize sound
+    bigWinPlayer.open(Audio('/assets/sounds/big_win.mp3'), autoStart: false);
+    simpleWinPlayer.open(Audio('/assets/sounds/simple_win.mp3'), autoStart: false);
+    spinningPlayer.open(Audio('/assets/sounds/spinning_sound.mp3'), autoStart: false);
 
     anim = RiveAnimation.asset(
       'assets/anims/roulette.riv',
@@ -101,6 +111,7 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
 
         introOptions[IntroOptions.outro]!.fire();
         rouletteOptions[spinTurn.spin]!.fire();
+        spinningPlayer.play();
 
         Future.delayed(const Duration(seconds: 6), () {
 
@@ -115,7 +126,7 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
 
           if (spinTurn.spin == RouletteOptions.firebase1 || spinTurn.spin == RouletteOptions.firebase2 || spinTurn.spin == RouletteOptions.flutter1 || spinTurn.spin == RouletteOptions.flutter2)
           {
-
+            bigWinPlayer.play();
             if (spinTurn.spin == RouletteOptions.firebase1 || spinTurn.spin == RouletteOptions.firebase2) {
               sparkyConfettiTrigger.fire();
             }
@@ -130,6 +141,9 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
                 showQRCodeTrigger!.fire();
               }
             });
+          }
+          else {
+            simpleWinPlayer.play();
           }
 
           Future.delayed(const Duration(seconds: 5), () {
@@ -273,15 +287,12 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
 
         Align(
           alignment: Alignment.bottomLeft,
-          child: Visibility(
-            visible: true,  // showQRCode,
-            child: Container(
-              margin: const EdgeInsets.all(10),
-              child: SizedBox(
-                width: 350,
-                height: 350,
-                child: qrcodeAnim
-              ),
+          child: Container(
+            margin: const EdgeInsets.all(10),
+            child: SizedBox(
+              width: 350,
+              height: 350,
+              child: qrcodeAnim
             ),
           ),
         )
