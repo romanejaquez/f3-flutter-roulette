@@ -104,7 +104,7 @@ class FlutterRouletteBtnPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: const Color(0xFF00338A),
+      backgroundColor: const Color(0xFF560000),
       body: Center(
         child: SizedBox(
           width: 350,

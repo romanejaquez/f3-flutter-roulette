@@ -48,6 +48,8 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
   AssetsAudioPlayer simpleWinPlayer = AssetsAudioPlayer();
   AssetsAudioPlayer spinningPlayer = AssetsAudioPlayer();
 
+  String rivPath = 'assets/anims/flutterconflatam_roulette.riv';
+
   @override
   void initState() {
     super.initState();
@@ -58,31 +60,23 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
     spinningPlayer.open(Audio('/assets/sounds/spinning_sound.mp3'), autoStart: false);
 
     anim = RiveAnimation.asset(
-      'assets/anims/roulette.riv',
+      rivPath,
       artboard: 'roulette',
       onInit: onRiveInit,
       fit: BoxFit.contain,
     );
 
     resultAnim = RiveAnimation.asset(
-      'assets/anims/roulette.riv',
+      rivPath,
       artboard: 'resultscreen',
       onInit: onRiveResultInit,
       fit: BoxFit.fitHeight,
     );
 
     introAnim = RiveAnimation.asset(
-      'assets/anims/roulette.riv',
+      rivPath,
       artboard: 'mainintro',
       onInit: onRiveIntroInit,
-      fit: BoxFit.fitHeight,
-    );
-
-
-    qrcodeAnim = RiveAnimation.asset(
-      'assets/anims/roulette.riv',
-      artboard: 'qrcodepanelroulette',
-      onInit: onRiveQRCodeScanInit,
       fit: BoxFit.fitHeight,
     );
 
@@ -134,13 +128,13 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
               dashConfettiTrigger.fire();
             }
 
-            setState(() {
-              showQRCode = true;
+            // setState(() {
+            //   showQRCode = true;
 
-              if (showQRCodeTrigger != null) {
-                showQRCodeTrigger!.fire();
-              }
-            });
+            //   if (showQRCodeTrigger != null) {
+            //     showQRCodeTrigger!.fire();
+            //   }
+            // });
           }
           else {
             simpleWinPlayer.play();
@@ -284,18 +278,7 @@ class _RouletteWheelState extends ConsumerState<RouletteWheel> {
             heightFactor: 0.7,
             child: winConfettiAnim)
         ),
-
-        Align(
-          alignment: Alignment.bottomLeft,
-          child: Container(
-            margin: const EdgeInsets.all(10),
-            child: SizedBox(
-              width: 350,
-              height: 350,
-              child: qrcodeAnim
-            ),
-          ),
-        )
+        
       ],
      );
   }
